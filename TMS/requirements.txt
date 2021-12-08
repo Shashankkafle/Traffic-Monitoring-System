@@ -1,0 +1,7 @@
+h5py==3.1.0
+importlib-metadata==4.8.2
+Keras==2.2.4
+numpy==1.17.4
+opencv-python==4.5.4.60
+tensorflow==1.12.0
+
