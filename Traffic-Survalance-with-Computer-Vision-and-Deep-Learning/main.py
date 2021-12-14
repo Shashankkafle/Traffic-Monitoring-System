@@ -3,10 +3,11 @@ import cv2
 import numpy as np
 from tracking import *
 
+
 VIDEO_DIR = './VideoDataSets/1.mp4'
 
 def letterbox_image(image, size):
-    '''resize image with unchanged aspect ratio using padding'''
+    '''resize image with hangedunc aspect ratio using padding'''
     ih, iw = image.shape[:2]
     h, w = size
     scale = min(w/iw, h/ih)
@@ -20,12 +21,15 @@ def letterbox_image(image, size):
     return new_image
 
 selection_dict = {'img': None, 'points selected': []}
+point = []
 
 def select_point(event, x, y, flags,param):
     if event == cv2.EVENT_LBUTTONDOWN:
         cv2.circle(selection_dict['img'],(x,y), 5, (0, 255, 0), -1)
+        point.append([x,y])
         selection_dict['points selected'].append([x, y])
-
+        
+# print (point)
 
 def select_quadrilateral_from(image):
     selection_dict['img'] = image
@@ -69,8 +73,6 @@ if __name__ == '__main__':
     vehicles = []
     cap = cv2.VideoCapture(VIDEO_DIR)
     ret, image = cap.read()
-    print(image)
-    print("here")
     image = letterbox_image(image, tuple(reversed(model_image_size)))
 
 
@@ -81,6 +83,7 @@ if __name__ == '__main__':
         exit(0)
 
     quad_as_contour = selection_dict['points selected'].reshape((-1, 1, 2))
+    print(point)
 
     distance = int(input("Enter the length of the selected region in meters: "))
     avg_speed = 0
@@ -93,7 +96,6 @@ if __name__ == '__main__':
 
         image = letterbox_image(image, tuple(reversed(model_image_size)))
         boxes = yolo.detect_image(image)
-        print(boxes)
 
         """
         Here we need to track
@@ -135,3 +137,4 @@ if __name__ == '__main__':
     print('___________________________STATISTICS___________________________')
     print('Vehicle count: ', vehicle_count)
     print('Avg speed of vehicles: ', avg_speed)
+   

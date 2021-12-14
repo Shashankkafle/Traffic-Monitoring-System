@@ -18,6 +18,8 @@ class Vehicle:
         if self.entry_time == self.exit_time:
             return 0
         velocity = distace/(self.exit_time - self.entry_time)
+        self.speed=velocity
+        print('id',self.id,'speed',self.speed)
         return velocity
 
 def update_or_deregister(objects, vehicles, distance):
@@ -25,11 +27,17 @@ def update_or_deregister(objects, vehicles, distance):
     for i in range(len(vehicles)):
         best_match, best_match_distance = None, 1e9
         bxmin = vehicles[i].left
+        # print ( 'print bxmin',bxmin)
         bymin = vehicles[i].top
+        print ( 'print bymin',bymin,vehicles[i].id)
         bxmax = vehicles[i].right
+        # print ("print bxmax",bxmax)
         bymax = vehicles[i].bottom
+        # print ("print bymax",bymax)
         bxmid = (bxmin + bxmax) / 2
+        # print ("print bxmid",bxmid)
         bymid = (bymin + bymax) / 2
+        # print ("print bymid",bymid)
         for j in range(len(objects)):
             top = objects[j][0]
             bottom = objects[j][1]
@@ -91,6 +99,7 @@ def not_tracked(objects, vehicles, v_count): # Will return new objects
                 break
         else:
             new_vehicles.append(Vehicle(obj[0], obj[1], obj[2], obj[3], v_count + 1))
+            print(Vehicle(obj[0], obj[1], obj[2], obj[3], v_count + 1))
             v_count += 1
 
     return new_vehicles
