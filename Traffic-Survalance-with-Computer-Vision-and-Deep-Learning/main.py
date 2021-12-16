@@ -29,7 +29,6 @@ def select_point(event, x, y, flags,param):
         point.append([x,y])
         selection_dict['points selected'].append([x, y])
         
-# print (point)
 
 def select_quadrilateral_from(image):
     selection_dict['img'] = image
@@ -72,18 +71,17 @@ if __name__ == '__main__':
     vehicle_count = 0
     vehicles = []
     cap = cv2.VideoCapture(VIDEO_DIR)
-    ret, image = cap.read()
-    image = letterbox_image(image, tuple(reversed(model_image_size)))
+    ret, image = cap.read() #ret is true if the read is successful image contains the image
+    image = letterbox_image(image, tuple(reversed(model_image_size))) #resizing image
 
 
     if select_quadrilateral_from(image) == -1:
         print("You must select 4 points")
-        cap.release()
+        cap.release() #Releases resources used in cv2.VideoCapture(VIDEO_DIR)
         yolo.session_close()
         exit(0)
 
     quad_as_contour = selection_dict['points selected'].reshape((-1, 1, 2))
-    print(point)
 
     distance = int(input("Enter the length of the selected region in meters: "))
     avg_speed = 0
@@ -95,7 +93,7 @@ if __name__ == '__main__':
             break
 
         image = letterbox_image(image, tuple(reversed(model_image_size)))
-        boxes = yolo.detect_image(image)
+        boxes = yolo.detect_image(image) #yolo.detect__image(image) gives the image to a model and returns the outpu of the model 
 
         """
         Here we need to track
@@ -105,16 +103,16 @@ if __name__ == '__main__':
             y_mid = (box[0] + box[1])//2
             x_mid = (box[2] + box[3])//2
             if cv2.pointPolygonTest(selection_dict['points selected'], (int(x_mid), int(y_mid)), measureDist=False) >=0 :
-                selected_boxes.append(box)
+                selected_boxes.append(box) #adds the vehicles inside the polygon in the selected_boxes  array
 
-        new_vehicles = not_tracked(selected_boxes, vehicles, vehicle_count)
-        vehicle_velocity_sum, deleted_count = update_or_deregister(selected_boxes, vehicles, distance)
+        new_vehicles = not_tracked(selected_boxes, vehicles, vehicle_count) #returns new vehicles that are in he polygon
+        vehicle_velocity_sum, deleted_count = update_or_deregister(selected_boxes, vehicles, distance) #removes 
 
         if deleted_count != 0:
             avg_speed = int(avg_speed*vehicle_count + vehicle_velocity_sum//deleted_count)//(vehicle_count + deleted_count)
 
         vehicle_count += len(new_vehicles)
-        vehicles += new_vehicles
+        vehicles += new_vehicles #vehicles is the array of vehicles in the polygon being tracked
 
         for vehicle in vehicles:
             cv2.rectangle(image, (vehicle.left, vehicle.top), (vehicle.right, vehicle.bottom), (255, 0, 0), 2)
