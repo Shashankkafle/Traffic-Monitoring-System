@@ -1,6 +1,5 @@
 import math
 import time
-
 FRAMES_NOT_SEEN_BUFFER = 5
 
 class Vehicle:
@@ -14,6 +13,7 @@ class Vehicle:
         self.exit_time = exit_time
         self.buffer = FRAMES_NOT_SEEN_BUFFER
         self.speed= speed
+
     
     
 
@@ -21,25 +21,19 @@ class Vehicle:
         if self.entry_time == self.exit_time:
             return 0
         velocity = distace/(self.exit_time - self.entry_time)
-        print('reached here')
-        # print('id',self.id,'speed',self.speed)
         return velocity
 
 def update_or_deregister(objects, vehicles, distance):
     indexes_to_be_deleted = []
+    voilators=[]
     for i in range(len(vehicles)): #looping through every objectt thatt is currently in the polygon
         best_match, best_match_distance = None, 1e9
         bxmin = vehicles[i].left
-        # print ( 'print bxmin',bxmin)
         bymin = vehicles[i].top
         bxmax = vehicles[i].right
-        # print ("print bxmax",bxmax)
         bymax = vehicles[i].bottom
-        # print ("print bymax",bymax)
         bxmid = (bxmin + bxmax) / 2
-        # print ("print bxmid",bxmid)
         bymid = (bymin + bymax) / 2
-        # print ("print bymid",bymid)
         for j in range(len(objects)): ##looping through every objectt thatt is currently being tracked
             top = objects[j][0]
             bottom = objects[j][1]
@@ -67,19 +61,17 @@ def update_or_deregister(objects, vehicles, distance):
 
     for index in sorted(indexes_to_be_deleted, reverse=True):
         if vehicles[index].buffer == 0:
-            print("exittime in update1", vehicles[index].exit_time)
             vehicles[index].exit_time = time.time()
-            print("exittime in update2", vehicles[index].exit_time)
             vehicle_velocity_sum += vehicles[index].calulate_speed(distance)
-            print("speed in update1", vehicles[index].speed)
             vehicles[index].speed = vehicles[index].calulate_speed(distance)
-            print("speed in update2", vehicles[index].speed)
+            if(vehicles[index].speed>0.1):
+                voilators.append(vehicles[index])
+
             deleted_counts += 1
             del vehicles[index]
         else:
             vehicles[index].buffer -= 1
-
-    return vehicle_velocity_sum, deleted_counts
+    return voilators, vehicle_velocity_sum, deleted_counts
 
 def not_tracked(objects, vehicles, v_count): # Will return new objects
     if len(objects) == 0:
@@ -106,7 +98,6 @@ def not_tracked(objects, vehicles, v_count): # Will return new objects
                 break
         else:
             new_vehicles.append(Vehicle(obj[0], obj[1], obj[2], obj[3], v_count + 1))
-            print(Vehicle(obj[0], obj[1], obj[2], obj[3], v_count + 1))
             v_count += 1
 
     return new_vehicles
