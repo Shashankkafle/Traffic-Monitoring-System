@@ -1,4 +1,5 @@
 from ObjectDetection import YOLO
+# from Object_Detection import *
 import cv2
 import numpy as np
 from tracking import *
@@ -98,7 +99,7 @@ if __name__ == '__main__':
             break
 
         image = letterbox_image(image1, tuple(reversed(model_image_size)))
-        boxes = yolo.detect_image(image) #yolo.detect__image(image) gives the image to a model and returns the outpu of the model 
+        boxes =  yolo.detect__image(image) #gives the image to a model and returns the outpu of the model 
 
         """
         Here we need to track
