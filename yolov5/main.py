@@ -1,12 +1,14 @@
-from ObjectDetection import YOLO
+# from ObjectDetection import YOLO
 # from Object_Detection import *
+from turtle import width
+from Second_detect import *
 import cv2
 import numpy as np
 from tracking import *
-from rules import *
 from PIL import Image
+from database_entry import save_data
 
-VIDEO_DIR = './VideoDataSets/20211226_114729.mp4'
+VIDEO_DIR = 'D:/Traffic-Monitoring-System/Traffic-Survalance-with-Computer-Vision-and-Deep-Learning/VideoDataSets/1.mp4'
 
 def letterbox_image(image, size):
     '''resize image with hangedunc aspect ratio using padding'''
@@ -15,12 +17,12 @@ def letterbox_image(image, size):
     scale = min(w/iw, h/ih)
     nw = int(iw*scale)
     nh = int(ih*scale)
-
     image = cv2.resize(image, (nw,nh), cv2.INTER_CUBIC)
     new_image = np.zeros((w, h, 3), np.uint8)
     new_image[:,:] = (128, 128, 128)
     new_image[(h-nh)//2:(h-nh)//2 +nh, (w-nw)//2:(w-nw)//2 + nw] = image
     return new_image
+
 
 selection_dict = {'img': None, 'points selected': []}
 point = []
@@ -67,21 +69,22 @@ def select_quadrilateral_from(image):
     return 1
 
 if __name__ == '__main__':
-    model_image_size = (608, 608)
-    yolo = YOLO()
+    model_image_size = (640, 640)
+    #! yolo = YOLO()
 
     vehicle_count = 0
     vehicles = []
     cap = cv2.VideoCapture(VIDEO_DIR)
     ret, image = cap.read() #ret is true if the read is successful image contains the image
-    image = letterbox_image(image, tuple(reversed(model_image_size))) #resizing image
 
+    image = letterbox_image(image, tuple(reversed(model_image_size))) #resizing image
+    # image = letterbox_image(image, tuple(model_image_size)) #resizing image
 
 
     if select_quadrilateral_from(image) == -1:
         print("You must select 4 points")
         cap.release() #Releases resources used in cv2.VideoCapture(VIDEO_DIR)
-        yolo.session_close()
+        #!yolo.session_close()
         exit(0)
 
     quad_as_contour = selection_dict['points selected'].reshape((-1, 1, 2))
@@ -97,10 +100,13 @@ if __name__ == '__main__':
 
         if image1 is None:
             break
-
+        
+        
         image = letterbox_image(image1, tuple(reversed(model_image_size)))
-        boxes =  yolo.detect__image(image) #gives the image to a model and returns the outpu of the model 
-
+        boxes = detect(image)
+        # image1=cv2.imread("C:/Users/Acer/Desktop/traffic.jpg")
+        # image = letterbox_image(image1, tuple(reversed(model_image_size)))
+        # boxes = detect(image) #! yolo.detect__image(image) #gives the image to a model and returns the outpu of the model 
         """
         Here we need to track
         """
@@ -115,17 +121,10 @@ if __name__ == '__main__':
         voilators, vehicle_velocity_sum, deleted_count = update_or_deregister(selected_boxes, vehicles, distance,framecount) #removes 
         for voilator in voilators:
             img = Image.fromarray(image, 'RGB')
-            # print(" voilator left,top,right,bottom",voilator.left, voilator.top, voilator.right, voilator.bottom)
-            #img=img.crop((voilator.right, voilator.bottom, voilator.left, voilator.top))
-            for x in range(voilator.left,voilator.right):
-                img.putpixel((x,voilator.top),(0,0,0,255))
-                img.putpixel((x,voilator.bottom),(0,0,0,255))
-                
-                img.putpixel((x,voilator.top+1),(0,0,0,255))
-                img.putpixel((x,voilator.bottom+1),(0,0,0,255))
-
-            
-            # img.show()
+            print('SPEED',voilator.speed)
+            (left, upper, right, lower) = (voilator.left, voilator.top, voilator.right, voilator.bottom)
+            img=img.crop((left, upper, right, lower))    
+            save_data(img,voilator.speed)        
 
         if deleted_count != 0:
             avg_speed = int(avg_speed*vehicle_count + vehicle_velocity_sum//deleted_count)//(vehicle_count + deleted_count)
@@ -149,7 +148,7 @@ if __name__ == '__main__':
             break
 
     cap.release()
-    yolo.session_close()
+    #! yolo.session_close()
 
     print('___________________________STATISTICS___________________________')
     print('Vehicle count: ', vehicle_count)

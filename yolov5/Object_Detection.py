@@ -48,7 +48,7 @@ if str(ROOT) not in sys.path:
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 @torch.no_grad()
-def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
+def run(im,weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
         #! source=ROOT / 'data/images',  # file/dir/URL/glob, 0 for webcam
         source= "C:/Users/Acer/Desktop/download.jpg" ,  # file/dir/URL/glob, 0 for webcam #! giving our own path
         #! data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
@@ -96,18 +96,19 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt)
     # Run inference
     model.warmup(imgsz=(1, 3, *imgsz), half=half)  # warmup
-    for path, im, im0s, vid_cap, s in dataset:
-        # t1 = time_sync()
-        im = torch.from_numpy(im).to(device)
-        im = im.half() if half else im.float()  # uint8 to fp16/32
-        im /= 255  # 0 - 255 to 0.0 - 1.0
-        if len(im.shape) == 3:
-            im = im[None]  # expand for batch dim
-        # Inference
-        pred = model(im, augment=augment, visualize=False)
-        # NMS
-        pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
-        # print(pred)
+    #! for path, im, im0s, vid_cap, s in dataset:
+    # t1 = time_sync()
+    im = torch.from_numpy(im).to(device)
+    im = im.half() if half else im.float()  # uint8 to fp16/32
+    im /= 255  # 0 - 255 to 0.0 - 1.0
+    if len(im.shape) == 3:
+        im = im[None]  # expand for batch dim
+    # Inference
+    pred = model(im, augment=augment, visualize=False)
+    # NMS
+    pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
+    print('pred',pred)
+    return(pred)
 
 def parse_opt():
     parser = argparse.ArgumentParser()
@@ -143,12 +144,12 @@ def parse_opt():
     return opt
 
 
-def main(opt):
+def main(opt,image):
     check_requirements(exclude=('tensorboard', 'thop'))
-    run(**vars(opt))
+    return( run(image,**vars(opt)))
 
 
-if __name__ == "__main__":
+def detect(image):
     opt = parse_opt()
     print("opt:",type(opt))
-    main(opt)
+    return(main(opt,image))

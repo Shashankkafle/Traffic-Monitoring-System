@@ -1,9 +1,10 @@
+from asyncio.windows_events import NULL
 import math
 import time
 FRAMES_NOT_SEEN_BUFFER = 5
 
 class Vehicle:
-    def __init__(self, top, bottom, left, right, id,framecount, exit_time=0):
+    def __init__(self, top, bottom, left, right, id,framecount, exit_time=0,speed=NULL):
         self.top = top
         self.bottom = bottom
         self.left = left
@@ -12,6 +13,7 @@ class Vehicle:
         self.entry_time = time.time()
         self.exit_time = exit_time
         self.buffer = FRAMES_NOT_SEEN_BUFFER
+        self.speed = speed
         self.framecount= framecount
 
     
@@ -37,6 +39,8 @@ def update_or_deregister(objects, vehicles, distance,framecount):
         # print( "id: ",vehicles[i].id, "bxmin: ",bxmin," bymin: ",bymin, "  bxmax: ",bxmax," bymax: ",bymax,"\n")
         for j in range(len(objects)): ##looping through every objectt thatt is currently being tracked
             top = objects[j][0]
+            print('\n\n','------------------------objects-----------------',objects,'\n\n')
+            print('\n\n','------------------------TOP-----------------',top,'\n\n')
             bottom = objects[j][1]
             ymid = int(round((top + bottom) / 2))
             left = objects[j][2]
@@ -86,7 +90,8 @@ def not_tracked(objects, vehicles, v_count,framecount): # Will return new object
         left = obj[2]
         right = obj[3]
         xmid = int(round((left+right)/2))
-        box_range = ((right - left) + (bottom - top)) / 2 + 10
+        box_range = ((right - left) + (bottom - top)) / 2   + 10
+        print('----BOX_RANGE------',box_range,'\n\n')
         for vehicle in vehicles + new_vehicles:
             bxmin = vehicle.left
             bymin = vehicle.top
