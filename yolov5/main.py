@@ -71,6 +71,8 @@ def select_quadrilateral_from(image):
 if __name__ == '__main__':
     model_image_size = (640, 640)
     #! yolo = YOLO()
+    detection = DETECTION('D:/Traffic-Monitoring-System/yolov5/yolov5s.pt','cpu')
+
 
     vehicle_count = 0
     vehicles = []
@@ -103,7 +105,7 @@ if __name__ == '__main__':
         
         
         image = letterbox_image(image1, tuple(reversed(model_image_size)))
-        boxes = detect(image)
+        boxes = detection.detect(image)
         # image1=cv2.imread("C:/Users/Acer/Desktop/traffic.jpg")
         # image = letterbox_image(image1, tuple(reversed(model_image_size)))
         # boxes = detect(image) #! yolo.detect__image(image) #gives the image to a model and returns the outpu of the model 
@@ -121,7 +123,6 @@ if __name__ == '__main__':
         voilators, vehicle_velocity_sum, deleted_count = update_or_deregister(selected_boxes, vehicles, distance,framecount) #removes 
         for voilator in voilators:
             img = Image.fromarray(image, 'RGB')
-            print('SPEED',voilator.speed)
             (left, upper, right, lower) = (voilator.left, voilator.top, voilator.right, voilator.bottom)
             img=img.crop((left, upper, right, lower))    
             save_data(img,voilator.speed)        
@@ -148,7 +149,6 @@ if __name__ == '__main__':
             break
 
     cap.release()
-    #! yolo.session_close()
 
     print('___________________________STATISTICS___________________________')
     print('Vehicle count: ', vehicle_count)
