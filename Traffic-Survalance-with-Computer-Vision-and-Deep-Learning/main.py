@@ -5,8 +5,7 @@ from tracking import *
 from rules import *
 from PIL import Image
 
-
-VIDEO_DIR = './VideoDataSets/1.mp4'
+VIDEO_DIR = './VideoDataSets/20211226_114729.mp4'
 
 def letterbox_image(image, size):
     '''resize image with hangedunc aspect ratio using padding'''
@@ -88,11 +87,14 @@ if __name__ == '__main__':
 
     distance = int(input("Enter the length of the selected region in meters: "))
     avg_speed = 0
-
+    framecount=0
     while True:
         start = time.time()
         ret, image1 = cap.read()
-        if image is None:
+        if ret==True:
+            framecount=framecount+1
+
+        if image1 is None:
             break
 
         image = letterbox_image(image1, tuple(reversed(model_image_size)))
@@ -103,20 +105,26 @@ if __name__ == '__main__':
         """
         selected_boxes = []
         for box in boxes:
-            img = Image.fromarray(image1, 'RGB')
-            # img=img.crop((box[2], box[0], box[3], box[1]))
-            img.show()
             y_mid = (box[0] + box[1])//2
             x_mid = (box[2] + box[3])//2
             if cv2.pointPolygonTest(selection_dict['points selected'], (int(x_mid), int(y_mid)), measureDist=False) >=0 :
                 selected_boxes.append(box) #adds the vehicles inside the polygon in the selected_boxes  array
 
-        new_vehicles = not_tracked(selected_boxes, vehicles, vehicle_count) #returns new vehicles that are in he polygon
-        voilators, vehicle_velocity_sum, deleted_count = update_or_deregister(selected_boxes, vehicles, distance) #removes 
+        new_vehicles = not_tracked(selected_boxes, vehicles, vehicle_count,framecount) #returns new vehicles that are in he polygon
+        voilators, vehicle_velocity_sum, deleted_count = update_or_deregister(selected_boxes, vehicles, distance,framecount) #removes 
         for voilator in voilators:
-            img = Image.fromarray(image1, 'RGB')
-            img=img.crop((voilator.left, voilator.top, voilator.right, voilator.bottom))
-            img.show()
+            img = Image.fromarray(image, 'RGB')
+            # print(" voilator left,top,right,bottom",voilator.left, voilator.top, voilator.right, voilator.bottom)
+            #img=img.crop((voilator.right, voilator.bottom, voilator.left, voilator.top))
+            for x in range(voilator.left,voilator.right):
+                img.putpixel((x,voilator.top),(0,0,0,255))
+                img.putpixel((x,voilator.bottom),(0,0,0,255))
+                
+                img.putpixel((x,voilator.top+1),(0,0,0,255))
+                img.putpixel((x,voilator.bottom+1),(0,0,0,255))
+
+            
+            # img.show()
 
         if deleted_count != 0:
             avg_speed = int(avg_speed*vehicle_count + vehicle_velocity_sum//deleted_count)//(vehicle_count + deleted_count)
@@ -136,7 +144,6 @@ if __name__ == '__main__':
         cv2.putText(image, "Avg speed: " + str(avg_speed), (480, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
         cv2.polylines(image, [quad_as_contour], True, (0, 255, 0), thickness=2)
         cv2.imshow('frame', image)
-
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -146,4 +153,5 @@ if __name__ == '__main__':
     print('___________________________STATISTICS___________________________')
     print('Vehicle count: ', vehicle_count)
     print('Avg speed of vehicles: ', avg_speed)
+    print('Frame rate: ', avg_speed)
    
